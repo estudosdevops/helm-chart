@@ -1,6 +1,6 @@
 {{- range $name, $data := .Values.jobs -}}
 ---
-apiVersion: batch/v2
+apiVersion: batch/v1
 kind: Job
 metadata:
   name: {{ include "app.fullname" $ }}-{{ $name }}
