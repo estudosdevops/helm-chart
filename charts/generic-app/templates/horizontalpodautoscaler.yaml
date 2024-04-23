@@ -1,6 +1,6 @@
 {{- if .Values.horizontalPodAutoscaler.enabled }}
 ---
-apiVersion: autoscaling/v2aa
+apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: {{ template "app.fullname" . }}
