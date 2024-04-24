@@ -21,3 +21,10 @@ version: 1.0.0
 # incremented each time you make changes to the application. Versions are not expected to
 # follow Semantic Versioning. They should reflect the version the application is using.
 appVersion: 1.16.0
+
+home: https://github.com/estudosdevops/helm-charts
+sources:
+  - https://github.com/estudosdevops/helm-charts/tree/main/charts/generic-app
+maintainers:
+  - name: Fabio Coelho
+    email: fabiocruzcoelho@gmail.com
