@@ -16,5 +16,7 @@ spec:
     - type: Resource
       resource:
         name: cpu
-        targetAverageUtilization: {{ .Values.horizontalPodAutoscaler.targetAverageCPUUtilization }}
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.horizontalPodAutoscaler.averageUtilization }}
 {{- end }}
