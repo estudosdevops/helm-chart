@@ -3,6 +3,22 @@ entries:
   generic-app:
   - apiVersion: v2
     appVersion: 1.16.0
+    created: "2024-04-24T17:27:17.313752863Z"
+    description: A Common Helm chart for Kubernetes
+    digest: 4bcd9c7f3c7a390724aff189dd6705c668ab333dedc3d864d875290753a04743
+    home: https://github.com/estudosdevops/helm-charts
+    maintainers:
+    - email: fabiocruzcoelho@gmail.com
+      name: Fabio Coelho
+    name: generic-app
+    sources:
+    - https://github.com/estudosdevops/helm-charts/tree/main/charts/generic-app
+    type: application
+    urls:
+    - https://github.com/estudosdevops/helm-chart/releases/download/generic-app-1.1.1/generic-app-1.1.1.tgz
+    version: 1.1.1
+  - apiVersion: v2
+    appVersion: 1.16.0
     created: "2024-04-24T14:39:24.44956931Z"
     description: A Common Helm chart for Kubernetes
     digest: 52b545ddf7c931c5a4fe988d53b73cedc90ae74b73ee125f6548b8cd36d938db
@@ -43,4 +59,4 @@ entries:
     urls:
     - https://github.com/estudosdevops/helm-chart/releases/download/generic-app-0.2.0/generic-app-0.2.0.tgz
     version: 0.2.0
-generated: "2024-04-24T14:39:24.449607832Z"
+generated: "2024-04-24T17:27:17.313775475Z"
