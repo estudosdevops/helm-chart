@@ -32,11 +32,11 @@ jobs:
           owner=$(cut -d '/' -f 1 <<< "$GITHUB_REPOSITORY")
           repo=$(cut -d '/' -f 2 <<< "$GITHUB_REPOSITORY")
           # package chart
-          ./cr package charts/$repo/generic-app
+          ./cr package charts/
           # upload chart to github relases
           ./cr upload \
               --owner "$owner" \
-              --git-repo "$repo/" \
+              --git-repo "$repo" \
               --token "${{ secrets.GITHUB_TOKEN }}" \
               --release-name-template "{{ .Version }}"
           # update index and push to github pages
