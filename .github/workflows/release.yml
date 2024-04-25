@@ -1,8 +1,9 @@
 ---
+name: Release
+
 on:
   push:
-    branches:
-      - main
+    branches: [feature/helm-chart-generic-app]
 
 jobs:
   release:
@@ -10,20 +11,38 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Configure Git
-        run: |
-          git config user.name "$GITHUB_ACTOR"
-          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
-
+      
       - name: Set up Helm
         uses: azure/setup-helm@v4
         with:
           version: v3.14.4
-        
-      - name: Run chart-releaser
-        uses: helm/chart-releaser-action@main
+      
+      - name: Login to GHCR
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${GITHUB_ACTOR}
+          password: ${{ secrets.GITHUB_TOKEN }}
+    
+      - name: Publish chart
         env:
-          CR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HELM_EXPERIMENTAL_OCI: '1'
+          CHARTS_REPO: ghcr.io/${{ github.repository }}
+          VERSION: ${{ github.ref_name }}
+        run: |
+          CHART_VERSION=$(echo $VERSION | cut -c 2-)
+          cd charts/generic-app
+          helm dep up
+          helm package . --version ${CHART_VERSION} --app-version ${VERSION}
+          helm push generic-app-${CHART_VERSION}.tgz oci://${CHARTS_REPO}
+
+      # - name: Configure Git
+      #   run: |
+      #     git config user.name "$GITHUB_ACTOR"
+      #     git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+        
+      # - name: Run chart-releaser
+      #   uses: helm/chart-releaser-action@main
+      #   env:
+      #     CR_TOKEN: ${{ secrets.GITHUB_TOKEN }}

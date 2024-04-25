@@ -165,8 +165,7 @@ imageCredentials: {}
 # Horizontal Pod Autoscaler configuration
 ##
 
-# Only works for 'deployments' and 'statefulsets'
-# -- Create HorizontalPodAutoscaler object.
+# Create HorizontalPodAutoscaler, only works for 'deployments' and 'statefulsets'
 autoscaling:
   enabled: false
 #   minReplicas: 1
@@ -191,12 +190,6 @@ autoscaling:
 #       - type: Pods
 #         value: 1
 #         periodSeconds: 60
-
-# horizontalPodAutoscaler:
-#   enabled: false
-#   minReplicas: 2
-#   maxReplicas: 10
-#   targetAverageCPUUtilization: 80
 
 ##
 # Service configuration
