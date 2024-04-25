@@ -32,7 +32,7 @@ jobs:
           username: ${GITHUB_ACTOR}
           access-token: ${{ secrets.GITHUB_TOKEN }}
           force: true
-          chart-folder: charts
+          chart-folder: charts/generic-app
     
       # - name: Publish chart
       #   env:
