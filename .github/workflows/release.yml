@@ -2,9 +2,8 @@
 name: Release
 
 on:
-  release:
-    types: 
-    - created
+  push:
+    branches: [main]
 
 jobs:
   release:
@@ -13,29 +12,39 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       
-      - name: Set up Helm
-        uses: azure/setup-helm@v4
-        with:
-          version: v3.14.4
+      # - name: Set up Helm
+      #   uses: azure/setup-helm@v4
+      #   with:
+      #     version: v3.14.4
       
-      - name: Login to GHCR
-        uses: docker/login-action@v2
+      # - name: Login to GHCR
+      #   uses: docker/login-action@v2
+      #   with:
+      #     registry: ghcr.io
+      #     username: ${GITHUB_ACTOR}
+      #     password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Push Helm chart to OCI compatible registry (Github)
+        uses: bsord/helm-push@v4.2.0
         with:
-          registry: ghcr.io
+          useOCIRegistry: true
+          registry-url:  oci://ghcr.io/${{ github.repository }}
           username: ${GITHUB_ACTOR}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          access-token: ${{ secrets.GITHUB_TOKEN }}
+          force: true
+          chart-folder: charts
     
-      - name: Publish chart
-        env:
-          HELM_EXPERIMENTAL_OCI: '1'
-          CHARTS_REPO: ghcr.io/${{ github.repository }}
-          VERSION: ${{ github.ref_name }}
-        run: |
-          CHART_VERSION=$(echo $VERSION | cut -c 2-)
-          cd charts/generic-app
-          helm dep up
-          helm package . --version ${CHART_VERSION} --app-version ${VERSION}
-          helm push generic-app-${CHART_VERSION}.tgz oci://${CHARTS_REPO}
+      # - name: Publish chart
+      #   env:
+      #     HELM_EXPERIMENTAL_OCI: '1'
+      #     CHARTS_REPO: ghcr.io/${{ github.repository }}
+      #     VERSION: ${{ github.ref_name }}
+      #   run: |
+      #     CHART_VERSION=$(echo $VERSION | cut -c 2-)
+      #     cd charts/generic-app
+      #     helm dep up
+      #     helm package . --version ${CHART_VERSION} --app-version ${VERSION}
+      #     helm push generic-app-${CHART_VERSION}.tgz oci://${CHARTS_REPO}
 
       # - name: Configure Git
       #   run: |
