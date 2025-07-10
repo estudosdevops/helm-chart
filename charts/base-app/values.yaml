@@ -107,15 +107,7 @@ pods:
       topologyKey: kubernetes.io/hostname
 
     rules: {}
-      # nodeAffinity:
-      #   requiredDuringSchedulingIgnoredDuringExecution:
-      #     nodeSelectorTerms:
-      #     - matchExpressions:
-      #       - key: homelab.tech/apps
-      #         operator: In
-      #         values:
-      #         - homelab
-
+  
   # Environment variables
   env: []
     # - name: key
