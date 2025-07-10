@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: {{ template "app.fullname" . }}
-  {{- include "generic.labels" . | nindent 2 }}
+  {{- include "base-app.labels" . | nindent 2 }}
   {{- include "pods.labels" . | nindent 4 }}
   {{- with .Values.pods.annotations }}
   annotations: {{ toYaml . | nindent 4 }}
@@ -23,7 +23,7 @@ spec:
       app.kubernetes.io/name: {{ include "app.name" . }}
   template:
     metadata:
-      {{- include "generic.labels" . | nindent 6 }}
+      {{- include "base-app.labels" . | nindent 6 }}
         {{- include "pods.podLabels" . | nindent 8 }}
       {{- with .Values.pods.podAnnotations }}
       annotations: {{ toYaml . | nindent 8 }}

@@ -1,0 +1,66 @@
+{{/*
+  This template intelligently decides which autoscaling resource to create.
+  It prioritizes KEDA's ScaledObject if it is enabled.
+  Otherwise, it falls back to the native Kubernetes HorizontalPodAutoscaler if that is enabled.
+*/}}
+
+{{- if .Values.scaling.enabled }}
+{{/* --- KEDA ScaledObject --- */}}
+{{/* Renders this block only if .Values.scaling.enabled is true */}}
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ template "app.fullname" . }}
+  {{- include "base-app.labels" . | nindent 2 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ template "app.fullname" . }}
+  pollingInterval: {{ .Values.scaling.pollingInterval }}
+  cooldownPeriod: {{ .Values.scaling.cooldownPeriod }}
+  minReplicaCount: {{ .Values.scaling.minReplicas }}
+  maxReplicaCount: {{ .Values.scaling.maxReplicas }}
+  {{- if .Values.scaling.advanced }}
+  advanced:
+    {{- toYaml .Values.scaling.advanced | nindent 4 }}
+  {{- end }}
+  triggers: 
+    {{- toYaml .Values.scaling.triggers | nindent 2 }}
+
+{{- else if .Values.autoscaling.enabled }}
+{{/* --- Native Kubernetes HPA --- */}}
+{{/* Renders this block only if KEDA is disabled AND .Values.autoscaling.enabled is true */}}
+
+{{- if not .Values.autoscaling.maxReplicas }}
+  {{- fail "ERROR: maxReplicas is required on HPA" }}
+{{- end }}
+
+{{- if semverCompare ">=1.23.0-0" .Capabilities.KubeVersion.Version }}
+apiVersion: autoscaling/v2
+{{- else }}
+apiVersion: autoscaling/v2beta2
+{{- end }}
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ template "app.fullname" . }}
+  {{- include "base-app.labels" . | nindent 2 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ template "app.fullname" . }}
+{{- if .Values.autoscaling.minReplicas }}
+  minReplicas: {{ .Values.autoscaling.minReplicas }}
+{{- end }}
+  maxReplicas: {{ .Values.autoscaling.maxReplicas }}
+{{- if .Values.autoscaling.metrics }}
+  metrics:
+{{ toYaml .Values.autoscaling.metrics | indent 4 }}
+{{- end }}
+{{- if .Values.autoscaling.behavior }}
+  behavior:
+{{ toYaml .Values.autoscaling.behavior | indent 4 }}
+{{- end }}
+
+{{- end }}

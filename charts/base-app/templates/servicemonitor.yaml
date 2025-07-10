@@ -3,7 +3,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: {{ template "app.fullname" . }}
-  {{- include "generic.labels" . | nindent 2 }}
+  {{- include "base-app.labels" . | nindent 2 }}
 spec:
   endpoints:
     - interval: {{ .Values.serviceMonitor.interval }}

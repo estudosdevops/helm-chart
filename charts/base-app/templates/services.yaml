@@ -1,0 +1,48 @@
+{{/*
+  This template conditionally renders the standard ClusterIP Service.
+  It will only be rendered if .Values.service.enabled is true.
+*/}}
+{{- if .Values.service.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "app.fullname" . }}
+  {{- include "base-app.labels" . | nindent 2 }}
+  {{- with .Values.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  ports:
+    {{- toYaml .Values.service.ports | nindent 4 }}
+  selector:
+    app.kubernetes.io/name: {{ include "app.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+---
+
+{{/*
+  This template conditionally renders the Headless Service.
+  It will only be rendered if .Values.serviceHeadless.enabled is true.
+  The '---' separator allows multiple YAML documents in a single file.
+*/}}
+{{- if .Values.serviceHeadless.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "app.fullname" . }}-headless
+  {{- include "base-app.labels" . | nindent 2 }}
+  {{- with .Values.serviceHeadless.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+    {{- toYaml .Values.serviceHeadless.ports | nindent 4 }}
+  selector:
+    app.kubernetes.io/name: {{ include "app.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}

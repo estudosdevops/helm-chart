@@ -1,5 +1,5 @@
 apiVersion: v2
-name: generic-app
+name: base-app
 description: A Common Helm chart for Kubernetes for deployment any app
 
 # A chart can be either an 'application' or a 'library' chart.
@@ -24,7 +24,7 @@ appVersion: 1.16.0
 
 home: https://github.com/estudosdevops/helm-charts
 sources:
-  - https://github.com/estudosdevops/helm-charts/tree/main/charts/generic-app
+  - https://github.com/estudosdevops/helm-charts/tree/main/charts/base-app
 maintainers:
   - name: Fabio Coelho
     email: fabiocruzcoelho@gmail.com
