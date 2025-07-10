@@ -33,13 +33,6 @@ jobs:
         fetch-depth: 0
         persist-credentials: false
 
-    - name: Get GitHub token using GitHub App
-      uses: stone-payments/github-actions-workflows/.github/actions/github-app-token@main
-      with:
-        github_app_id: ${{ secrets.SI_RELEASE_MANAGER_GHAPP_ID }}
-        github_app_org_id: ${{ secrets.SI_RELEASE_MANAGER_GHAPP_INSTALL_ID }}
-        GITHUB_APP_PRIVATE_KEY: ${{ secrets.SI_RELEASE_MANAGER_GHAPP_PRIV_KEY }}
-
     - name: Semantic Release
       id: semantic
       uses: cycjimmy/semantic-release-action@v4
