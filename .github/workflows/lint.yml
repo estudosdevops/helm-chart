@@ -1,0 +1,25 @@
+---
+name: Lint
+
+on:
+ pull_request:
+  types: [opened, synchronize, reopened]
+  branches:
+   - "develop"
+ workflow_dispatch:
+
+jobs:
+  helm:
+    name: Helm lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4.2.0
+        with:
+          version: v3.15.3
+
+      - name: Helm lint
+        run: helm lint ./charts/base-app

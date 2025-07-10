@@ -1,4 +1,4 @@
-{{- define "generic.labels" -}}
+{{- define "base-app.labels" -}}
 labels:
   app.kubernetes.io/name: {{ include "app.name" $ }}
   app.kubernetes.io/version: {{ $.Chart.AppVersion }}

@@ -1,12 +1,13 @@
 ---
-name: Release
+name: 🔖 Release
 
 on:
   push:
     branches: [main]
 
 jobs:
-  release:
+  helm-push:
+    name: Helm Push Release
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -18,6 +19,44 @@ jobs:
           force: true
           useOCIRegistry: true
           username: ${GITHUB_ACTOR}
-          chart-folder: charts/generic-app
+          chart-folder: charts/base-app
           access-token: ${{ secrets.GITHUB_TOKEN }}
           registry-url:  oci://ghcr.io/${{ github.repository }}
+
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        persist-credentials: false
+
+    - name: Get GitHub token using GitHub App
+      uses: stone-payments/github-actions-workflows/.github/actions/github-app-token@main
+      with:
+        github_app_id: ${{ secrets.SI_RELEASE_MANAGER_GHAPP_ID }}
+        github_app_org_id: ${{ secrets.SI_RELEASE_MANAGER_GHAPP_INSTALL_ID }}
+        GITHUB_APP_PRIVATE_KEY: ${{ secrets.SI_RELEASE_MANAGER_GHAPP_PRIV_KEY }}
+
+    - name: Semantic Release
+      id: semantic
+      uses: cycjimmy/semantic-release-action@v4
+      with:
+        semantic_version: 20
+        extra_plugins: |
+          @semantic-release/changelog
+          @semantic-release/git
+        branch: main
+      env:
+        GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
+
+    - name: Push updates to branch for major version
+      if: steps.semantic.outputs.new_release_published == 'true'
+      run: |
+        git push -f https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git :refs/tags/v${{steps.semantic.outputs.new_release_major_version}}
+        git tag -f v${{steps.semantic.outputs.new_release_major_version}}
+        git push -f https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git v${{steps.semantic.outputs.new_release_major_version}}
+      env:
+        GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}

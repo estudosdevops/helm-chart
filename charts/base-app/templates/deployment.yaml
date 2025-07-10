@@ -1,0 +1,165 @@
+{{/*
+  Main decision block:
+  1. If .Values.rollout.enabled is true, the kind will be Rollout.
+  2. Otherwise, it checks .Values.pods.controller to decide between Deployment and StatefulSet.
+*/}}
+{{- if .Values.rollout.enabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+{{- else if eq .Values.pods.controller "deployment" }}
+apiVersion: apps/v1
+kind: Deployment
+{{- else if eq .Values.pods.controller "statefulset" }}
+apiVersion: apps/v1
+kind: StatefulSet
+{{- end }}
+metadata:
+  name: {{ include "app.fullname" . }}
+  {{- /* 'template' syntax is older. 'include' is the modern way in Helm v3. */}}
+  {{- include "base-app.labels" . | nindent 2 }}
+  {{- include "pods.labels" . | nindent 4 }}
+  {{- with .Values.pods.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- with .Values.pods.replicas }}
+  replicas: {{ . }}
+  {{- end }}
+  {{- if .Values.rollout.enabled }}
+  # The rollout strategy is only added if it's a Rollout.
+  strategy:
+    {{- toYaml .Values.rollout.strategy | nindent 4 }}
+  {{- else }}
+  # Otherwise, use the strategy defined in pods.strategy (for Deployments/StatefulSets).
+  {{- with .Values.pods.strategy }}
+  strategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- end }}
+  {{- with .Values.pods.minReadySeconds }}
+  minReadySeconds: {{ . }}
+  {{- end }}
+  {{- if eq .Values.pods.controller "deployment" }}
+  revisionHistoryLimit: {{ .Values.pods.revisionHistoryLimit }}
+  {{- end }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "app.name" . }}
+  
+  {{/*
+    The 'template' section below is the Pod specification.
+    It is written ONLY ONCE and is reused by all
+    workload types, avoiding duplication.
+  */}}
+  template:
+    metadata:
+      {{- include "base-app.labels" . | nindent 6 }}
+      {{- include "pods.podLabels" . | nindent 8 }}
+      {{- with .Values.pods.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      serviceAccountName: {{ .Values.serviceAccount.name }}
+      dnsPolicy: {{ .Values.pods.dnsPolicy }}
+      {{- with .Values.pods.dnsConfig }}
+      dnsConfig:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.imagePullCredentials }}
+      imagePullSecrets:
+        - name: {{ include "app.fullname" . }}-image-pull
+      {{- else }}
+      {{- with .Values.pods.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- end }}
+      {{- with .Values.pods.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
+      {{- with .Values.pods.initContainers }}
+      initContainers:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ include "app.name" . }}
+          image: "{{ .Values.pods.image.name }}:{{ .Values.pods.image.tag }}"
+          imagePullPolicy: {{ .Values.pods.image.pullPolicy }}
+          {{- with .Values.pods.command }}
+          command:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.pods.args }}
+          args:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          env:
+            {{- include "pods.env" . | nindent 12 }}
+          {{- with .Values.pods.envFrom }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.pods.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.pods.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.pods.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          ports:
+            {{- toYaml .Values.pods.ports | nindent 12 }}
+          resources:
+            {{- toYaml .Values.pods.resources | nindent 12 }}
+      {{- with .Values.pods.additionalContainers }}
+      {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.pods.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.pods.affinity }}
+      affinity:
+        {{- with .rules }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- if .antiAffinity.enabled }}
+        {{- if eq .antiAffinity.type "hard" }}
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - topologyKey: {{ .antiAffinity.topologyKey }}
+              labelSelector:
+                matchLabels:
+                  app.kubernetes.io/name: {{ include "app.name" $ }}
+                  app.kubernetes.io/instance: {{ $.Release.Name }}
+        {{- else if eq .antiAffinity.type "soft" }}
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                topologyKey: {{ .antiAffinity.topologyKey }}
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: {{ include "app.name" $ }}
+                    app.kubernetes.io/instance: {{ $.Release.Name }}
+        {{- end }}
+        {{- end }}
+      {{- end }}
+      {{- with .Values.pods.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.pods.volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.pods.securityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

@@ -4,7 +4,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: {{ include "app.fullname" $ }}-{{ $name }}
-  {{- include "generic.labels" $ | nindent 2 }}
+  {{- include "base-app.labels" $ | nindent 2 }}
   {{- with $data.annotations }}
   annotations: {{ toYaml . | nindent 4 }}
   {{- end }}
@@ -12,6 +12,6 @@ spec:
   template:
     metadata:
       name: {{ include "app.fullname" $ }}-{{ $name }}
-      {{- include "generic.labels" $ | nindent 6 }}
+      {{- include "base-app.labels" $ | nindent 6 }}
     spec: {{ toYaml $data.spec | nindent 6 }}
 {{- end }}

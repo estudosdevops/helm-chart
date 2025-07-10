@@ -1,4 +1,4 @@
-# nameOverride -- name of the chart/release to override 'generic-app' with
+# nameOverride -- name of the chart/release to override 'base-app' with
 nameOverride:
 
 ##
@@ -168,45 +168,80 @@ imageCredentials: {}
 # Create HorizontalPodAutoscaler, only works for 'deployments' and 'statefulsets'
 autoscaling:
   enabled: false
-#   minReplicas: 1
-#   maxReplicas: 10
-#   metrics:
-#   - type: Resource
-#     resource:
-#       name: cpu
-#       target:
-#         type: Utilization
-#         averageUtilization: 60
-#   - type: Resource
-#     resource:
-#       name: memory
-#       target:
-#         type: Utilization
-#         averageUtilization: 60
-#   behavior:
-#     scaleDown:
-#       stabilizationWindowSeconds: 300
-#       policies:
-#       - type: Pods
-#         value: 1
-#         periodSeconds: 60
+  minReplicas: 1
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 80
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 15
+      policies:
+        - type: Percent
+          value: 10
+          periodSeconds: 60
+    scaleDown:
+      stabilizationWindowSeconds: 30
+      policies:
+        - type: Percent
+          value: 20
+          periodSeconds: 60
+
+##
+# Create HorizontalPodAutoscaler with keda, only works for 'deployments'
+##
+
+scaling:
+  enabled: false
+  pollingInterval: 30 # Intervalo de tempo em segundos para scaling
+  cooldownPeriod: 60  # Intervalo de tempo em segundos para downscaling a partir do processamento da última mensagem (ou ação do trigger em questão)
+  minReplicas: 1
+  maxReplicas: 10
+  triggers:
+  - type: cpu
+    metricType: Utilization
+    metadata:
+      value: "80"
+  advanced:
+    horizontalPodAutoscalerConfig:
+      behavior:
+        scaleUp:
+          stabilizationWindowSeconds: 15
+          policies:
+            - type: Percent
+              value: 10
+              periodSeconds: 60
+        scaleDown:
+          stabilizationWindowSeconds: 30
+          policies:
+            - type: Percent
+              value: 20
+              periodSeconds: 60
 
 ##
 # Service configuration
 ##
 
 service:
-  enabled: true
+  enabled: false
   ports:
     - port: 80
       targetPort: 80
       protocol: TCP
       name: http
+
+serviceHeadless:
+  enabled: false
+  ports:
     - port: 50051
       targetPort: 50051
       protocol: TCP
       name: grpc
-
+    
 ##
 # Ingress configuration
 ##
@@ -236,7 +271,7 @@ ingress:
 ##
 
 podDisruptionBudget:
-  enabled: true
+  enabled: false
   minAvailable: 1
 
 ##
@@ -316,3 +351,41 @@ global:
 
     # global.datadog.version -- app version
     # version: (default to appVersion + release revision)
+
+##
+# Argo Rollouts configuration
+##
+
+# This new section controls the generation of a Rollout object.
+# If 'enabled' is true, the 'deployment.yaml' template will generate a 'kind: Rollout'.
+rollout:
+  enabled: false
+
+  # Defines the deployment strategy. You can use either 'canary' or 'blueGreen'.
+  # Uncomment the strategy you want to use.
+  strategy:
+    # Example for Canary strategy.
+    # Ref: https://argo-rollouts.readthedocs.io/en/stable/features/canary/
+    canary:
+      # Defines the canary deployment steps.
+      steps:
+      # 1. Sends 20% of the traffic to the new version.
+      - setWeight: 20
+      # 2. Pauses the rollout. Promotion to the next step must be done
+      #    manually (or via automation, with 'opsmaster argocd app rollout promote').
+      - pause: {}
+      # 3. After manual promotion, sends 50% of the traffic.
+      - setWeight: 50
+      # 4. Pauses again for 1 minute before automatically promoting to 100%.
+      - pause:
+          duration: 1m
+    
+    # Example for Blue/Green strategy.
+    # Ref: https://argo-rollouts.readthedocs.io/en/stable/features/bluegreen/
+    # blueGreen:
+    #   # The service that is actively serving production traffic.
+    #   activeService: my-service-active
+    #   # The service that is receiving the new version for testing.
+    #   previewService: my-service-preview
+    #   # After the new version is ready, the rollout will pause before switching traffic.
+    #   autoPromotionEnabled: false
