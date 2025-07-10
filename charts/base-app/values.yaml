@@ -106,15 +106,15 @@ pods:
       type: hard  # Can be either 'hard' or 'soft'
       topologyKey: kubernetes.io/hostname
 
-    rules:
-      nodeAffinity:
-        requiredDuringSchedulingIgnoredDuringExecution:
-          nodeSelectorTerms:
-          - matchExpressions:
-            - key: stone.seguros/apps
-              operator: In
-              values:
-              - stoneseguros
+    rules: {}
+      # nodeAffinity:
+      #   requiredDuringSchedulingIgnoredDuringExecution:
+      #     nodeSelectorTerms:
+      #     - matchExpressions:
+      #       - key: homelab.tech/apps
+      #         operator: In
+      #         values:
+      #         - homelab
 
   # Environment variables
   env: []
