@@ -356,23 +356,30 @@ rollout:
   # Defines the deployment strategy. You can use either 'canary' or 'blueGreen'.
   # Uncomment the strategy you want to use.
   strategy:
-    # Example for Canary strategy.
+    # Example for a more advanced Canary strategy.
     # Ref: https://argo-rollouts.readthedocs.io/en/stable/features/canary/
     canary:
       # Defines the canary deployment steps.
       steps:
-      # 1. Sends 20% of the traffic to the new version.
-      - setWeight: 20
-      # 2. Pauses the rollout. Promotion to the next step must be done
-      #    manually (or via automation, with 'opsmaster argocd app rollout promote').
+      # 1. Sends 10% of the traffic to the new version.
+      - setWeight: 10
+      # 2. Pauses the rollout indefinitely for initial smoke tests.
+      #    Promotion must be done manually with 'opsmaster argocd app rollout promote'.
       - pause: {}
-      # 3. After manual promotion, sends 50% of the traffic.
+      # 3. After manual promotion, sends 50% of the traffic and waits for 5 minutes.
       - setWeight: 50
-      # 4. Pauses again for 1 minute before automatically promoting to 100%.
       - pause:
-          duration: 1m
+          duration: 5m
+      # 4. Optional: Run an automated analysis before full promotion.
+      #    This requires an 'AnalysisTemplate' to be defined in the cluster.
+      # - analysis:
+      #     templates:
+      #       - templateName: smoke-test
+      #     args:
+      #       - name: service-name
+      #         value: my-service
     
-    # Example for Blue/Green strategy.
+    # Example for a Blue/Green strategy.
     # Ref: https://argo-rollouts.readthedocs.io/en/stable/features/bluegreen/
     # blueGreen:
     #   # The service that is actively serving production traffic.
@@ -380,4 +387,5 @@ rollout:
     #   # The service that is receiving the new version for testing.
     #   previewService: my-service-preview
     #   # After the new version is ready, the rollout will pause before switching traffic.
+    #   # Promotion must be done manually.
     #   autoPromotionEnabled: false
