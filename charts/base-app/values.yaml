@@ -189,8 +189,8 @@ autoscaling:
 
 scaling:
   enabled: false
-  pollingInterval: 30 # Intervalo de tempo em segundos para scaling
-  cooldownPeriod: 60  # Intervalo de tempo em segundos para downscaling a partir do processamento da última mensagem (ou ação do trigger em questão)
+  pollingInterval: 30 # Polling interval in seconds for scaling
+  cooldownPeriod: 60  # Cooldown period in seconds for downscaling after last message processing (or trigger action)
   minReplicas: 1
   maxReplicas: 10
   triggers:
@@ -283,6 +283,68 @@ secrets: {}
   #   key: sensitive_value
   # dockerconfigjson/image-pull: |
   #   .dockerconfigjson: {}
+
+##
+# External Secrets configuration
+##
+
+externalSecrets:
+  # externalSecrets.enabled -- Enable External Secrets
+  enabled: false
+  
+  # externalSecrets.refreshInterval -- How often to sync the secret
+  refreshInterval: "60s"
+  
+  # externalSecrets.annotations -- Additional annotations for the ExternalSecret
+  annotations: {}
+    # argocd.argoproj.io/sync-wave: "-10"
+  
+  # Secret store reference
+  secretStore:
+    # externalSecrets.secretStore.name -- Name of the SecretStore or ClusterSecretStore
+    name: ""
+    # externalSecrets.secretStore.kind -- Kind of secret store (SecretStore or ClusterSecretStore)
+    kind: "SecretStore"
+  
+  # Target secret configuration
+  targetSecret:
+    # externalSecrets.targetSecret.name -- Name of the target secret (defaults to app fullname)
+    name: ""
+    # externalSecrets.targetSecret.creationPolicy -- Creation policy for the target secret
+    creationPolicy: "Owner"
+    # externalSecrets.targetSecret.deletionPolicy -- Deletion policy for the target secret
+    deletionPolicy: "Retain"
+  
+  # Case 1: dataFrom - Load all keys from a path
+  # Use when you want to import all keys from a secret
+  dataFrom: []
+    # - key: "path/to/secret"
+    #   version: "latest"  # optional
+    #   property: "data"   # optional
+    #   find:              # optional
+    #     name:
+    #       regexp: ".*"
+    #   rewrite:           # optional
+    #     - regexp:
+    #         source: "(.*)_ENV"
+    #         target: "$1"
+  
+  # Case 2: data - Map specific keys
+  # Use when you want to map specific keys with different names
+  data: []
+    # - secretKey: "database-password"
+    #   remoteRef:
+    #     key: "database/credentials"
+    #     property: "password"
+    #     version: "latest"  # optional
+    #   sourceRef:           # optional
+    #     storeRef:
+    #       name: "vault-backend"
+    #       kind: "SecretStore"
+    # - secretKey: "api-token"
+    #   remoteRef:
+    #     key: "api/tokens"
+    #     property: "service-token"
 
 ##
 # Service account management

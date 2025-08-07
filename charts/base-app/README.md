@@ -109,3 +109,74 @@ Um "Headless Service" é útil para casos de uso stateful (como bancos de dados)
 | :-------------------- | :---------------------------------------------------------------------------------------------------- | :----- |
 | `autoscaling.enabled` | Se `true`, cria um `HorizontalPodAutoscaler` nativo do Kubernetes. É ignorado se `scaling.enabled` for `true`. | `false`  |
 | `scaling.enabled`     | Se `true`, cria um `ScaledObject` do KEDA para autoscaling avançado.                                     | `false`  |
+
+### Configurações de External Secrets (`externalSecrets`)
+
+| Parâmetro                 | Descrição                                                                           | Padrão      |
+| :------------------------ | :---------------------------------------------------------------------------------- | :---------- |
+| `enabled`                 | Se `true`, cria um recurso `ExternalSecret` para sincronizar secrets externos.      | `false`     |
+| `refreshInterval`         | Intervalo de sincronização do secret.                                               | `"60s"`     |
+| `secretStore.name`        | Nome do `SecretStore` ou `ClusterSecretStore` a ser usado.                         | `""`        |
+| `secretStore.kind`        | Tipo do secret store (`SecretStore` ou `ClusterSecretStore`).                      | `"SecretStore"` |
+| `dataFrom`                | Lista de configurações para importar todas as chaves de um caminho específico.      | `[]`        |
+| `data`                    | Lista de mapeamentos específicos de chaves do secret externo para o secret local.   | `[]`        |
+
+## 📚 Exemplos de Uso
+
+### Exemplo 1: Usando dataFrom (Importar todas as chaves)
+
+```yaml
+base-app:
+  nameOverride: "minha-app"
+  
+  externalSecrets:
+    enabled: true
+    secretStore:
+      name: "vault-secret-store"
+      kind: "SecretStore"
+    dataFrom:
+      - key: "secret/minha-app"
+```
+
+### Exemplo 2: Usando data (Mapeamento específico)
+
+```yaml
+base-app:
+  nameOverride: "minha-app"
+  
+  externalSecrets:
+    enabled: true
+    secretStore:
+      name: "vault-secret-store"
+      kind: "ClusterSecretStore"
+    data:
+      - secretKey: "database-password"
+        remoteRef:
+          key: "secret/database"
+          property: "password"
+      - secretKey: "api-token"
+        remoteRef:
+          key: "secret/api"
+          property: "token"
+```
+
+### Exemplo 3: Uso misto (dataFrom + data)
+
+```yaml
+base-app:
+  nameOverride: "minha-app"
+  
+  externalSecrets:
+    enabled: true
+    secretStore:
+      name: "vault-secret-store"
+    # Importa todas as chaves de configuração
+    dataFrom:
+      - key: "secret/minha-app/config"
+    # Adiciona chaves específicas
+    data:
+      - secretKey: "special-token"
+        remoteRef:
+          key: "secret/shared/tokens"
+          property: "service-token"
+```
