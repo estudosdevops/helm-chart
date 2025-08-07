@@ -12,7 +12,7 @@ A seguir, uma lista dos charts disponíveis neste repositório.
 
 | Chart      | Versão | Descrição                                                                                             | Documentação         |
 |------------|--------|--------------------------------------------------------------------------------------------------------|----------------------|
-| base-app   | 1.0.0  | Um chart genérico e altamente configurável para deploy de qualquer aplicação, suportando Deployments, StatefulSets e Argo Rollouts. | [README](./charts/base-app/README.md) |
+| base-app   | 1.1.0  | Um chart genérico e altamente configurável para deploy de qualquer aplicação, suportando Deployments, StatefulSets, Argo Rollouts e External Secrets. | [README](./charts/base-app/README.md) |
 
 🤝 Contribuição
 
